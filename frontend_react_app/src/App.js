@@ -13,8 +13,30 @@ import "./App.css";
  * Uses REACT_APP_BACKEND_URL from environment for API base.
  */
 
-// Use the environment variable (must be set in .env) for backend API
-const API_BASE = process.env.REACT_APP_BACKEND_URL || ""; // No trailing slash in env variable
+/*
+ * Use the environment variable (must be set in .env) for backend API.
+ * If REACT_APP_BACKEND_URL is unset, emit a warning and fallback to
+ * localhost backend (3001) when running locally, otherwise fail gracefully.
+ */
+let API_BASE = process.env.REACT_APP_BACKEND_URL;
+if (!API_BASE) {
+  if (window && window.location && window.location.hostname === "localhost") {
+    API_BASE = "http://localhost:3001";
+    // eslint-disable-next-line no-console
+    console.warn(
+      "REACT_APP_BACKEND_URL is not set. Falling back to http://localhost:3001. " +
+      "For deployment or cloud, set REACT_APP_BACKEND_URL to your backend service URL."
+    );
+  } else {
+    API_BASE = "";
+    // eslint-disable-next-line no-console
+    console.warn(
+      "REACT_APP_BACKEND_URL is not set! API requests will fail. " +
+      "Please set this variable in your .env file to the backend base URL (e.g. https://your-backend.app)."
+    );
+  }
+}
+if (API_BASE.endsWith("/")) API_BASE = API_BASE.replace(/\/+$/, "");
 
 // PUBLIC_INTERFACE
 /**

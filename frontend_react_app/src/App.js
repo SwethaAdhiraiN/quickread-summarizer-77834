@@ -8,15 +8,29 @@ import "./App.css";
  * bookmarks, account/profile, and seamless interaction with backend REST API.
  */
 
-// --- API Helper Functions ---
+/*
+ * --- API Helper Functions ---
+ * Uses REACT_APP_BACKEND_URL from environment for API base.
+ */
 
-const API_BASE = process.env.REACT_APP_API_BASE || ""; // Use proxy/local or .env
+// Use the environment variable (must be set in .env) for backend API
+const API_BASE = process.env.REACT_APP_BACKEND_URL || ""; // No trailing slash in env variable
 
 // PUBLIC_INTERFACE
+/**
+ * Universal API fetch function for backend requests.
+ * Uses the backend URL from REACT_APP_BACKEND_URL environment variable.
+ * @param {string} endpoint - API path starting with /
+ * @param {object} opts - Fetch options
+ * @returns {Promise<object>} - Parsed JSON response
+ */
 export async function apiFetch(endpoint, opts = {}) {
-  const res = await fetch(`${API_BASE}${endpoint}`, {
+  const url = API_BASE.endsWith("/") && endpoint.startsWith("/")
+    ? API_BASE.slice(0, -1) + endpoint
+    : API_BASE + endpoint;
+  const res = await fetch(url, {
     credentials: "include",
-    headers: {"Content-Type": "application/json", ...opts.headers },
+    headers: { "Content-Type": "application/json", ...opts.headers },
     ...opts,
   });
   if (!res.ok) throw await res.json();
@@ -118,7 +132,9 @@ function App() {
 
   // PUBLIC_INTERFACE
   function handleLogin() {
-    window.location.href = `${API_BASE}/api/auth/login`;
+    // Compose login URL safely with REACT_APP_BACKEND_URL
+    const base = API_BASE.endsWith("/") ? API_BASE.slice(0, -1) : API_BASE;
+    window.location.href = `${base}/api/auth/login`;
   }
 
   // PUBLIC_INTERFACE
